@@ -8,7 +8,6 @@ import os
 from utils.llm_wrapper import create_llm
 from utils.document_loader import DocumentLoader, SimpleVectorStore
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
 
 
 class DocumentQA:
@@ -30,9 +29,8 @@ class DocumentQA:
 用户问题: {question}
 
 回答:"""
-        )
-        
-        self.qa_chain = LLMChain(llm=self.llm, prompt=self.qa_prompt)
+        )        
+        self.qa_chain = self.qa_prompt | self.llm
     
     def load_documents(self, file_paths_or_content):
         """加载文档"""
@@ -62,9 +60,8 @@ class DocumentQA:
         
         # 构建上下文
         context = "\n\n".join([doc.page_content for doc in relevant_docs])
-        
-        # 生成回答
-        response = self.qa_chain.run(context=context, question=question)
+          # 生成回答
+        response = self.qa_chain.invoke({"context": context, "question": question})
         return response
 
 

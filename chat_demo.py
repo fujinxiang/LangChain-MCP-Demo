@@ -6,7 +6,6 @@ LangChain + 硅基流动聊天 Demo
 import sys
 from utils.llm_wrapper import create_llm
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
 
 
 def main():
@@ -28,9 +27,8 @@ def main():
 
 回答:"""
         )
-        
-        # 创建链
-        chain = LLMChain(llm=llm, prompt=prompt_template)
+          # 创建链（使用新的 RunnableSequence 语法）
+        chain = prompt_template | llm
         
         print("💬 开始聊天（输入 'quit' 或 'exit' 退出）\n")
         
@@ -47,9 +45,8 @@ def main():
                     continue
                 
                 print("🤖 AI: ", end="", flush=True)
-                
-                # 调用链获取回答
-                response = chain.run(question=user_input)
+                  # 调用链获取回答
+                response = chain.invoke({"question": user_input})
                 print(response)
                 print()
                 

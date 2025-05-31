@@ -9,7 +9,6 @@ import os
 from utils.llm_wrapper import create_llm
 from utils.document_loader import DocumentLoader, SimpleVectorStore
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
 
 
 @st.cache_resource
@@ -39,9 +38,8 @@ def init_qa_system():
 用户问题: {question}
 
 回答:"""
-    )
-    
-    qa_chain = LLMChain(llm=llm, prompt=qa_prompt)
+    )    
+    qa_chain = qa_prompt | llm
     
     return {
         'llm': llm,
@@ -86,10 +84,9 @@ def chat_page():
 问题: {question}
 
 回答:"""
-                    )
-                    
-                    chain = LLMChain(llm=llm, prompt=prompt_template)
-                    response = chain.run(question=prompt)
+                    )                    
+                    chain = prompt_template | llm
+                    response = chain.invoke({"question": prompt})
                     
                     st.markdown(response)
                     
@@ -205,9 +202,8 @@ def doc_qa_page():
                         else:
                             # 构建上下文
                             context = "\n\n".join([doc.page_content for doc in relevant_docs])
-                            
-                            # 生成回答
-                            answer = qa_system['qa_chain'].run(context=context, question=question)
+                              # 生成回答
+                            answer = qa_system['qa_chain'].invoke({"context": context, "question": question})
                         
                         st.markdown(answer)
                         
