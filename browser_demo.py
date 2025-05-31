@@ -17,21 +17,33 @@ async def demo_browser_planning():
     try:
         # 创建 LLM 和浏览器代理
         llm = create_llm()
-        agent = create_browser_agent(llm, headless=True)
+        agent = create_browser_agent(llm, headless=False)
         
         # 示例任务
         tasks = [
-            "访问百度首页并搜索'人工智能'",
-            "访问GitHub，搜索LangChain项目",
+            # "访问百度首页并搜索'人工智能'",
+            # "访问GitHub，搜索LangChain项目",
+            # "访问希沃首页并截图保存到本地",
         ]
         
-        print("🤖 AI 浏览器助手准备就绪\n")
+        print("🤖 AI 浏览器助手准备就绪")
+        print("选择执行模式:")
+        print("1. 仅规划步骤 (planning)")
+        print("2. 真正执行任务 (execute)")
+        
+        mode = input("请选择模式 (1 或 2): ").strip()
+        execute_mode = mode == "2"
+        
+        print(f"\n{'🚀 执行模式' if execute_mode else '📋 规划模式'} 已启用\n")
         
         for i, task in enumerate(tasks, 1):
             print(f"📋 任务 {i}: {task}")
             
             try:
-                result = await agent.execute_task(task)
+                if execute_mode:
+                    result = await agent.execute_task_with_actions(task)
+                else:
+                    result = await agent.execute_task(task)
                 print(result)
                 print("\n" + "="*50 + "\n")
                 
@@ -57,7 +69,6 @@ async def demo_simple_navigation():
         # 测试网站列表
         test_sites = [
             ("https://httpbin.org/html", "测试HTML页面"),
-            ("https://example.com", "示例网站"),
             ("https://httpbin.org/json", "JSON API测试")
         ]
         
@@ -90,12 +101,16 @@ async def interactive_browser_mode():
     """交互式浏览器模式"""
     print("\n" + "=" * 50)
     print("🤖 交互式 AI 浏览器助手")
-    print("您可以描述想要执行的浏览器任务，AI 将为您规划执行步骤")
+    print("您可以描述想要执行的浏览器任务，AI 将真正执行这些操作")
+    print("支持的任务类型:")
+    print("  • 百度搜索: '访问百度并搜索人工智能'")
+    print("  • GitHub搜索: '访问GitHub，搜索LangChain项目'")
+    print("  • 截图: '对当前页面截图'")
     print("输入 'quit' 或 'exit' 退出\n")
     
     try:
         llm = create_llm()
-        agent = create_browser_agent(llm, headless=True)
+        agent = create_browser_agent(llm, headless=False)  # 改为非无头模式，便于观察
         
         while True:
             try:
@@ -108,9 +123,13 @@ async def interactive_browser_mode():
                 if not user_task:
                     continue
                 
-                print("🤖 AI 正在分析任务...")
-                result = await agent.execute_task(user_task)
+                print("🤖 AI 正在执行任务...")
+                print("=" * 50)
+                
+                # 使用新的执行方法
+                result = await agent.execute_task_with_actions(user_task)
                 print(result)
+                print("=" * 50)
                 print()
                 
             except KeyboardInterrupt:
@@ -189,10 +208,10 @@ async def main():
         print("\n📋 开始演示...")
         
         # 任务规划演示
-        await demo_browser_planning()
+        # await demo_browser_planning()
         
         # 简单导航演示
-        await demo_simple_navigation()
+        # await demo_simple_navigation()
         
         # 交互模式
         await interactive_browser_mode()
