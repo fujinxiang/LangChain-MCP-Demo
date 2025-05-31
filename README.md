@@ -4,11 +4,12 @@
 
 ## 功能特性
 
-- 使用 LangChain 框架
+- 使用 LangChain 框架（兼容 0.3.x 版本）
 - 集成硅基流动（SiliconFlow）API
 - 支持对话式问答
 - 支持文档问答
 - 支持流式输出
+- 使用现代 RunnableSequence 语法（无弃用警告）
 
 ## 安装依赖
 
@@ -105,6 +106,12 @@ LangChainDemo/
 - 首次运行可能需要下载相关依赖
 - 网络连接需要稳定以访问 API 服务
 - 建议使用 Python 3.8 或更高版本
+- 项目已更新为使用 LangChain 0.3.x 新语法，无弃用警告
+
+## 更新日志
+
+- **v1.1.0**: 修复 LangChain 弃用警告，使用新的 RunnableSequence 语法
+- **v1.0.0**: 初始版本，基础功能实现
 
 ## 许可证
 
