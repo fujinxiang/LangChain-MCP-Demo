@@ -16,7 +16,7 @@
 
 ```bash
 # 克隆项目
-git clone <git@github.com:fujinxiang/LangChain-MCP-Demo.git>
+git clone git@github.com:fujinxiang/LangChain-MCP-Demo.git
 cd LangChainDemo
 
 # 安装 Python 依赖
@@ -55,7 +55,7 @@ MAX_TOKENS=1000
 
 ```bash
 # 运行 MCP Playwright 演示
-python mcp_browser_demo.py
+python mcp_demo.py
 
 # 输入自然语言指令，例如 "百度搜索 LangChain"，观察浏览器自动化操作
 ```
@@ -67,7 +67,7 @@ LangChainDemo/
 ├── utils/
 │   ├── llm_wrapper.py          # LLM 包装器
 │   └── mcp_browser_tools.py    # MCP Playwright 工具
-├── mcp_browser_demo.py         # MCP Playwright 演示
+├── mcp_demo.py                 # MCP Playwright 演示
 ├── setup_mcp.py               # 自动化安装脚本
 ├── config.py                  # 配置文件
 ├── requirements.txt           # Python 依赖
@@ -75,6 +75,23 @@ LangChainDemo/
 ```
 
 ## 🔧 核心代码说明
+
+
+### 代码架构图
+
+```mermaid
+graph TD
+    mcp_demo[mcp_demo.py 主演示程序] --> llm_wrapper[utils/llm_wrapper.py LLM 包装器]
+    mcp_demo --> mcp_browser_tools[utils/mcp_browser_tools.py MCP Playwright 工具]
+    mcp_demo --> config[config.py 配置管理]
+    
+    llm_wrapper --> langchain_llm[LangChain LLM 语言模型实例]
+    mcp_browser_tools --> mcp_server[playwright-mcp-server]
+    
+    config --> env_file[环境变量 .env 文件]
+    
+    mcp_server --> playwright_browser[Playwright 浏览器自动化操作]
+```
 
 ### LangChain LLM 包装器
 
@@ -156,22 +173,6 @@ async def demo():
     await agent.close()
 
 asyncio.run(demo())
-```
-
-### 简单架构图
-
-```mermaid
-graph TD
-    mcp_browser_demo[mcp_browser_demo.py 主演示程序] --> llm_wrapper[utils/llm_wrapper.py LLM 包装器]
-    mcp_browser_demo --> mcp_browser_tools[utils/mcp_browser_tools.py MCP Playwright 工具]
-    mcp_browser_demo --> config[config.py 配置管理]
-    
-    llm_wrapper --> langchain_llm[LangChain LLM 语言模型实例]
-    mcp_browser_tools --> mcp_server[playwright-mcp-server]
-    
-    config --> env_file[环境变量 .env 文件]
-    
-    mcp_server --> playwright_browser[Playwright 浏览器自动化操作]
 ```
 
 
