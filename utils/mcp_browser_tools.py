@@ -8,7 +8,6 @@ import json
 from typing import Optional, Dict, Any, List, Union
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
-
 class MCPPlaywrightAgent:
     """基于 MCP 的 Playwright 浏览器代理"""
     
@@ -21,8 +20,11 @@ class MCPPlaywrightAgent:
         """
         self.mcp_server_config = mcp_server_config or self._get_default_config()
         self.client: Optional[MultiServerMCPClient] = None
-        self._initialized = False
+        self._initialized = False        
         self.session_id: Optional[str] = None
+        self.session = None  # 保存复用的会话
+        self.tools = None  # 缓存工具列表
+        self._session_context = None  # 保存会话上下文管理器
         
     def _get_default_config(self) -> Dict[str, Any]:
         """获取默认的 MCP 服务器配置"""
@@ -32,23 +34,27 @@ class MCPPlaywrightAgent:
                 "args": ["@executeautomation/playwright-mcp-server"],
                 "transport": "stdio"
             }
-        }
-    
+        }    
     async def initialize(self):
-        """初始化 MCP 客户端"""
+        """初始化 MCP 客户端和会话"""
         if self._initialized:
             return
             
-        try:
-            # 创建 MCP 客户端
+        try:            # 创建 MCP 客户端
             self.client = MultiServerMCPClient(self.mcp_server_config)
             
-            # 获取可用工具
-            tools = await self.client.get_tools()
-            print(f"✅ MCP Playwright 工具包初始化成功，可用工具: {len(tools)} 个")
+            # 使用正确的异步上下文管理器方式创建会话
+            self._session_context = self.client.session("playwright")
+            self.session = await self._session_context.__aenter__()
+            
+            # 加载工具
+            from langchain_mcp_adapters.tools import load_mcp_tools
+            self.tools = await load_mcp_tools(self.session)
+            
+            print(f"✅ MCP Playwright 工具包初始化成功，可用工具: {len(self.tools)} 个")
             
             # 显示可用工具
-            for tool in tools:
+            for tool in self.tools:
                 print(f"  🔧 {tool.name}: {tool.description}")
             
             self._initialized = True
@@ -64,12 +70,9 @@ class MCPPlaywrightAgent:
             await self.initialize()
         
         try:
-            # 获取所有工具
-            tools = await self.client.get_tools()
-            
             # 找到对应的工具
             target_tool = None
-            for tool in tools:
+            for tool in self.tools:
                 if tool.name == tool_name:
                     target_tool = tool
                     break
@@ -368,14 +371,27 @@ class MCPPlaywrightAgent:
             return []
     
     async def close(self):
-        """关闭 MCP 连接"""
+        """关闭 MCP 会话和连接"""
         try:
-            if self.client:
-                await self._call_tool("playwright_close", random_string="dummy")
-                print("✅ MCP Playwright 连接已关闭")
+            # 关闭浏览器
+            if self._initialized and self.tools:
+                await self._call_tool("playwright_close")
+              # 关闭会话
+            if self._session_context and self.session:
+                await self._session_context.__aexit__(None, None, None)
+                self.session = None
+                self._session_context = None
+              # 重置状态
+            self._initialized = False
+            self.tools = None
+            self.session_id = None
+            self._session_context = None
+            
+            print("✅ MCP Playwright 连接已关闭")
+            
         except Exception as e:
-            print(f"❌ 关闭 MCP 连接失败: {e}")
-    
+            print(f"❌ 关闭 MCP 连接时出错: {e}")
+
     # 常用方法的简化别名
     async def navigate(self, url: str, **kwargs) -> str:
         """导航到指定URL（简化别名）"""
@@ -484,9 +500,12 @@ class MCPSmartBrowserAgent:
                 else:
                     response_text = str(response)
                 
+                print(f"🔍 LLM 响应: {response_text}")
+
                 json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
                 if json_match:
                     plan = json.loads(json_match.group())
+                    print(f"📋 解析的执行计划: {plan}")
                 else:
                     raise ValueError("未找到有效的 JSON 响应")
             except (json.JSONDecodeError, ValueError) as e:
@@ -555,4 +574,4 @@ def create_mcp_browser_agent(llm=None, mcp_server_config: Optional[Dict[str, Any
     if llm:
         return MCPSmartBrowserAgent(llm, mcp_server_config)
     else:
-        return MCPPlaywrightAgent(mcp_server_config) 
+        return MCPPlaywrightAgent(mcp_server_config)

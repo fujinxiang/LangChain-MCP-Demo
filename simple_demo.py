@@ -88,7 +88,7 @@ async def main():
     print("=" * 60)
     
     # 演示硅基流动 LLM
-    demo_siliconflow_llm()
+    # demo_siliconflow_llm()
     
     # 演示 MCP Playwright
     await demo_mcp_playwright()
