@@ -150,6 +150,26 @@ class MCPSmartBrowserAgent:
             await self.initialize()
         
         try:
+            # 动态获取可用工具列表
+            available_tools = []
+            if self.mcp_agent.tools:
+                for tool in self.mcp_agent.tools:
+                    # 获取工具的参数信息
+                    tool_info = f"- {tool.name}: {tool.description}"
+                    if hasattr(tool, 'args') and tool.args:
+                        # 如果有参数信息，添加参数说明
+                        params = []
+                        for param_name, param_info in tool.args.items():
+                            param_desc = f"{param_name}"
+                            if hasattr(param_info, 'description') and param_info.description:
+                                param_desc += f" ({param_info.description})"
+                            params.append(param_desc)
+                        if params:
+                            tool_info += f" (参数: {', '.join(params)})"
+                    available_tools.append(tool_info)
+            
+            tools_list = "\n".join(available_tools) if available_tools else "- 无可用工具"
+            
             # 使用 LLM 分析任务并生成执行计划
             prompt = f"""
 作为一个浏览器自动化专家，请分析以下任务并提供详细的执行步骤：
@@ -161,20 +181,7 @@ class MCPSmartBrowserAgent:
 - description: 任务描述
 
 可用的操作包括（action请直接使用这些工具名称）:
-- playwright_navigate: 导航到 URL (参数: url, browserType, headless, width, height, timeout, waitUntil)
-- playwright_click: 点击元素 (参数: selector)
-- playwright_fill: 填写输入框 (参数: selector, value)
-- playwright_screenshot: 截图 (参数: name, selector, fullPage, width, height, savePng, storeBase64, downloadsDir)
-- playwright_evaluate: 执行 JavaScript (参数: script)
-- playwright_get_visible_text: 获取页面文本 (参数: random_string)
-- playwright_get_visible_html: 获取页面HTML (参数: random_string)
-- playwright_hover: 悬停元素 (参数: selector)
-- playwright_select: 选择下拉框 (参数: selector, value)
-- playwright_go_back: 浏览器后退 (参数: random_string)
-- playwright_go_forward: 浏览器前进 (参数: random_string)
-- playwright_press_key: 按键操作 (参数: key, selector)
-- playwright_drag: 拖拽元素 (参数: sourceSelector, targetSelector)
-- playwright_console_logs: 获取控制台日志 (参数: type, limit, search, clear)
+{tools_list}
 - wait: 等待指定时间（秒，特殊操作）
 
 例如:
@@ -189,7 +196,7 @@ class MCPSmartBrowserAgent:
   ]
 }}
 """
-            
+            print(f"🔍 请求 prompt: {prompt}")
             response = await self.llm.ainvoke(prompt)
             
             # 解析响应
