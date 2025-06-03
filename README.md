@@ -66,8 +66,7 @@ python mcp_browser_demo.py
 LangChainDemo/
 ├── utils/
 │   ├── llm_wrapper.py          # LLM 包装器
-│   ├── mcp_browser_tools.py    # MCP Playwright 工具
-│   └── __init__.py
+│   └── mcp_browser_tools.py    # MCP Playwright 工具
 ├── mcp_browser_demo.py         # MCP Playwright 演示
 ├── setup_mcp.py               # 自动化安装脚本
 ├── config.py                  # 配置文件
@@ -75,7 +74,7 @@ LangChainDemo/
 └── README.md                  # 项目说明
 ```
 
-## 🔧 核心组件
+## 🔧 核心代码说明
 
 ### LangChain LLM 包装器
 
@@ -91,60 +90,51 @@ response = await llm.ainvoke("你好，请介绍一下硅基流动")
 print(response)
 ```
 
-### MCP Playwright 工具
+### MCP 工具
 
-`utils/mcp_browser_tools.py` 提供了基于 MCP 协议的浏览器自动化工具，集成了 LangChain 的 Agent 架构：
+`utils/mcp_browser_tools.py` 使用 `langchain-mcp-adapters` 集成 MCP Playwright 服务器，提供了浏览器自动化功能：
 
-```python
-import asyncio
-from utils.mcp_browser_tools import MCPPlaywrightAgent
+#### 核心组件
 
-async def demo():
-    agent = MCPPlaywrightAgent()
-    
-    # 导航到网页
-    await agent.call_tool("playwright_navigate", url="https://www.baidu.com")
-    
-    # 截图
-    await agent.call_tool("playwright_screenshot", name="baidu_homepage", savePng=True)
-    
-    # 关闭浏览器
-    await agent.close()
+1. **MultiServerMCPClient**: 管理 MCP 服务器连接
+2. **load_mcp_tools**: 将 MCP 工具转换为 LangChain 工具
+3. **MCPPlaywrightAgent**: 封装的浏览器代理类
 
-asyncio.run(demo())
-```
-
-## 📖 使用示例
-
-### 基础浏览器操作
+#### MCP Server 配置，类似 Cursor 配置
 
 ```python
-import asyncio
-from utils.mcp_browser_tools import MCPPlaywrightAgent
+# 自定义 MCP 服务器配置
+config = {
+    "playwright": {
+        "command": "npx",
+        "args": ["@executeautomation/playwright-mcp-server"],
+        "transport": "stdio"
+    }
+}
 
-async def demo():
-    agent = MCPPlaywrightAgent()
-    await agent.initialize()
-    
-    # 导航到网页
-    await agent.call_tool("playwright_navigate", url="https://www.example.com")
-    
-    # 截图
-    await agent.call_tool("playwright_screenshot", name="example_page")
-    
-    # 点击元素
-    await agent.call_tool("playwright_click", selector="button#submit")
-    
-    # 填写表单
-    await agent.call_tool("playwright_fill", selector="input[name='username']", value="test_user")
-    
-    # 关闭浏览器
-    await agent.close()
-
-asyncio.run(demo())
+agent = MCPPlaywrightAgent(mcp_server_config=config)
 ```
 
-### 智能浏览器代理
+#### 获取 MCP tools 供 LLM 使用
+
+```python
+from langchain_mcp_adapters.client import MultiServerMCPClient
+
+    self.client = MultiServerMCPClient(self.mcp_server_config)
+    
+    # 使用正确的异步上下文管理器方式创建会话
+    self._session_context = self.client.session("playwright")
+    self.session = await self._session_context.__aenter__()
+    
+    # 加载工具
+    from langchain_mcp_adapters.tools import load_mcp_tools
+    self.tools = await load_mcp_tools(self.session)
+    
+    print(f"✅ MCP Playwright 工具包初始化成功，可用工具: {len(self.tools)} 个")
+```
+
+
+### MCP Demo 
 
 ```python
 import asyncio
@@ -167,6 +157,23 @@ async def demo():
 
 asyncio.run(demo())
 ```
+
+### 简单架构图
+
+```mermaid
+graph TD
+    mcp_browser_demo[mcp_browser_demo.py 主演示程序] --> llm_wrapper[utils/llm_wrapper.py LLM 包装器]
+    mcp_browser_demo --> mcp_browser_tools[utils/mcp_browser_tools.py MCP Playwright 工具]
+    mcp_browser_demo --> config[config.py 配置管理]
+    
+    llm_wrapper --> langchain_llm[LangChain LLM 语言模型实例]
+    mcp_browser_tools --> mcp_server[playwright-mcp-server]
+    
+    config --> env_file[环境变量 .env 文件]
+    
+    mcp_server --> playwright_browser[Playwright 浏览器自动化操作]
+```
+
 
 ## 🧠 LangChain 集成
 
@@ -192,7 +199,3 @@ Model Context Protocol (MCP) 是一个统一的协议标准，用于大语言模
 - [MCP 协议](https://modelcontextprotocol.io/)
 - [Playwright](https://playwright.dev/)
 - [硅基流动 API](https://siliconflow.cn/)
-
-## 📄 许可证
-
-MIT License
