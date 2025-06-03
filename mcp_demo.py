@@ -80,9 +80,8 @@ async def interactive_mcp_mode():
     print("基于 Model Context Protocol (MCP) 的智能浏览器操作")
     print("支持的任务类型:")
     print("  • 智能任务: '访问百度并搜索人工智能'")
-    print("输入 'quit' 或 'exit' 退出")
-    print("输入 'tools' 查看可用工具\n")
-    
+    print("输入 'quit' 或 'exit' 退出\n")
+
     try:
         # 创建智能 MCP 代理
         llm = create_llm()

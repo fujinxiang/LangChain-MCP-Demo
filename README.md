@@ -79,7 +79,6 @@ python mcp_demo.py
     支持的任务类型:
     • 智能任务: '访问百度并搜索人工智能'
     输入 'quit' 或 'exit' 退出
-    输入 'tools' 查看可用工具
 
     ✅ 配置加载成功
     API 基础 URL: https://api.siliconflow.cn/v1
