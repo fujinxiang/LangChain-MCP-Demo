@@ -65,7 +65,7 @@ class MCPPlaywrightAgent:
             print("💡 请确保已安装: npm install -g @executeautomation/playwright-mcp-server")
             raise
     
-    async def _call_tool(self, tool_name: str, **kwargs) -> str:
+    async def call_tool(self, tool_name: str, **kwargs) -> str:
         """调用指定的 MCP 工具"""
         if not self._initialized:
             await self.initialize()
@@ -88,277 +88,6 @@ class MCPPlaywrightAgent:
         except Exception as e:
             return f"❌ 调用工具 {tool_name} 失败: {e}"
     
-    async def navigate_to(self, url: str, **kwargs) -> str:
-        """导航到指定 URL"""
-        try:
-            result = await self._call_tool("playwright_navigate", url=url, **kwargs)
-            return f"✅ 成功导航到: {url}\n{result}"
-        except Exception as e:
-            return f"❌ 导航失败: {e}"
-    
-    async def take_screenshot(self, name: str, **kwargs) -> str:
-        """截取屏幕截图"""
-        try:
-            result = await self._call_tool("playwright_screenshot", name=name, **kwargs)
-            return f"✅ 截图完成: {name}\n{result}"
-        except Exception as e:
-            return f"❌ 截图失败: {e}"
-    
-    async def click_element(self, selector: str) -> str:
-        """点击页面元素"""
-        try:
-            result = await self._call_tool("playwright_click", selector=selector)
-            return f"✅ 成功点击元素: {selector}\n{result}"
-        except Exception as e:
-            return f"❌ 点击失败: {e}"
-    
-    async def fill_input(self, selector: str, value: str) -> str:
-        """填写输入框"""
-        try:
-            result = await self._call_tool("playwright_fill", selector=selector, value=value)
-            return f"✅ 成功填写: {selector} = {value}\n{result}"
-        except Exception as e:
-            return f"❌ 填写失败: {e}"
-    
-    async def hover_element(self, selector: str) -> str:
-        """悬停在页面元素上"""
-        try:
-            result = await self._call_tool("playwright_hover", selector=selector)
-            return f"✅ 成功悬停: {selector}\n{result}"
-        except Exception as e:
-            return f"❌ 悬停失败: {e}"
-    
-    async def select_option(self, selector: str, value: str) -> str:
-        """选择下拉框选项"""
-        try:
-            result = await self._call_tool("playwright_select", selector=selector, value=value)
-            return f"✅ 成功选择: {selector} = {value}\n{result}"
-        except Exception as e:
-            return f"❌ 选择失败: {e}"
-    
-    async def execute_javascript(self, script: str) -> str:
-        """执行 JavaScript 代码"""
-        try:
-            result = await self._call_tool("playwright_evaluate", script=script)
-            return f"✅ JavaScript 执行成功:\n{result}"
-        except Exception as e:
-            return f"❌ JavaScript 执行失败: {e}"
-    
-    async def get_page_text(self) -> str:
-        """获取页面可见文本"""
-        try:
-            result = await self._call_tool("playwright_get_visible_text", random_string="dummy")
-            return result
-        except Exception as e:
-            return f"❌ 获取页面文本失败: {e}"
-    
-    async def get_page_html(self) -> str:
-        """获取页面 HTML"""
-        try:
-            result = await self._call_tool("playwright_get_visible_html", random_string="dummy")
-            return result
-        except Exception as e:
-            return f"❌ 获取页面 HTML 失败: {e}"
-    
-    async def go_back(self) -> str:
-        """浏览器后退"""
-        try:
-            result = await self._call_tool("playwright_go_back", random_string="dummy")
-            return f"✅ 后退成功\n{result}"
-        except Exception as e:
-            return f"❌ 后退失败: {e}"
-    
-    async def go_forward(self) -> str:
-        """浏览器前进"""
-        try:
-            result = await self._call_tool("playwright_go_forward", random_string="dummy")
-            return f"✅ 前进成功\n{result}"
-        except Exception as e:
-            return f"❌ 前进失败: {e}"
-    
-    async def press_key(self, key: str, selector: Optional[str] = None) -> str:
-        """按键操作"""
-        try:
-            params = {"key": key}
-            if selector:
-                params["selector"] = selector
-                
-            result = await self._call_tool("playwright_press_key", **params)
-            return f"✅ 按键成功: {key}\n{result}"
-        except Exception as e:
-            return f"❌ 按键失败: {e}"
-    
-    async def drag_and_drop(self, source_selector: str, target_selector: str) -> str:
-        """拖拽操作"""
-        try:
-            result = await self._call_tool(
-                "playwright_drag",
-                sourceSelector=source_selector,
-                targetSelector=target_selector
-            )
-            return f"✅ 拖拽成功: {source_selector} -> {target_selector}\n{result}"
-        except Exception as e:
-            return f"❌ 拖拽失败: {e}"
-    
-    async def save_as_pdf(self, output_path: str, filename: str = "page.pdf", **kwargs) -> str:
-        """保存页面为 PDF"""
-        try:
-            result = await self._call_tool(
-                "playwright_save_as_pdf",
-                outputPath=output_path,
-                filename=filename,
-                **kwargs
-            )
-            return f"✅ PDF 保存成功: {filename}\n{result}"
-        except Exception as e:
-            return f"❌ PDF 保存失败: {e}"
-    
-    async def get_console_logs(self, log_type: str = "all", limit: Optional[int] = None) -> str:
-        """获取控制台日志"""
-        try:
-            params = {"type": log_type}
-            if limit:
-                params["limit"] = limit
-                
-            result = await self._call_tool("playwright_console_logs", **params)
-            return f"📋 控制台日志:\n{result}"
-        except Exception as e:
-            return f"❌ 获取控制台日志失败: {e}"
-    
-    async def start_codegen_session(self, output_path: str, test_name_prefix: str = "GeneratedTest") -> str:
-        """开始代码生成会话"""
-        try:
-            result = await self._call_tool(
-                "playwright_start_codegen_session",
-                options={
-                    "outputPath": output_path,
-                    "testNamePrefix": test_name_prefix,
-                    "includeComments": True
-                }
-            )
-            
-            # 从结果中提取会话 ID（如果可能）
-            if isinstance(result, dict) and "sessionId" in result:
-                self.session_id = result["sessionId"]
-            
-            return f"✅ 代码生成会话已开始\n{result}"
-        except Exception as e:
-            return f"❌ 开始代码生成会话失败: {e}"
-    
-    async def end_codegen_session(self) -> str:
-        """结束代码生成会话"""
-        if not self.session_id:
-            return "❌ 没有活跃的代码生成会话"
-        
-        try:
-            result = await self._call_tool("playwright_end_codegen_session", sessionId=self.session_id)
-            self.session_id = None
-            return f"✅ 代码生成会话已结束\n{result}"
-        except Exception as e:
-            return f"❌ 结束代码生成会话失败: {e}"
-    
-    async def get_codegen_session(self, session_id: str) -> str:
-        """获取代码生成会话信息"""
-        try:
-            result = await self._call_tool("get_codegen_session", sessionId=session_id)
-            return f"📋 会话信息:\n{result}"
-        except Exception as e:
-            return f"❌ 获取会话信息失败: {e}"
-    
-    async def clear_codegen_session(self, session_id: str) -> str:
-        """清除代码生成会话"""
-        try:
-            result = await self._call_tool("clear_codegen_session", sessionId=session_id)
-            return f"✅ 会话已清除\n{result}"
-        except Exception as e:
-            return f"❌ 清除会话失败: {e}"
-    
-    async def click_iframe_element(self, iframe_selector: str, selector: str) -> str:
-        """点击iframe中的元素"""
-        try:
-            result = await self._call_tool(
-                "playwright_iframe_click",
-                iframeSelector=iframe_selector,
-                selector=selector
-            )
-            return f"✅ 成功点击iframe元素: {iframe_selector} -> {selector}\n{result}"
-        except Exception as e:
-            return f"❌ 点击iframe元素失败: {e}"
-    
-    async def http_get(self, url: str) -> str:
-        """执行HTTP GET请求"""
-        try:
-            result = await self._call_tool("playwright_get", url=url)
-            return f"✅ GET请求成功:\n{result}"
-        except Exception as e:
-            return f"❌ GET请求失败: {e}"
-    
-    async def http_post(self, url: str, data: str, headers: Optional[Dict[str, str]] = None, token: Optional[str] = None) -> str:
-        """执行HTTP POST请求"""
-        try:
-            params = {"url": url, "value": data}
-            if headers:
-                params["headers"] = headers
-            if token:
-                params["token"] = token
-                
-            result = await self._call_tool("playwright_post", **params)
-            return f"✅ POST请求成功:\n{result}"
-        except Exception as e:
-            return f"❌ POST请求失败: {e}"
-    
-    async def http_put(self, url: str, data: str) -> str:
-        """执行HTTP PUT请求"""
-        try:
-            result = await self._call_tool("playwright_put", url=url, value=data)
-            return f"✅ PUT请求成功:\n{result}"
-        except Exception as e:
-            return f"❌ PUT请求失败: {e}"
-    
-    async def http_patch(self, url: str, data: str) -> str:
-        """执行HTTP PATCH请求"""
-        try:
-            result = await self._call_tool("playwright_patch", url=url, value=data)
-            return f"✅ PATCH请求成功:\n{result}"
-        except Exception as e:
-            return f"❌ PATCH请求失败: {e}"
-    
-    async def http_delete(self, url: str) -> str:
-        """执行HTTP DELETE请求"""
-        try:
-            result = await self._call_tool("playwright_delete", url=url)
-            return f"✅ DELETE请求成功:\n{result}"
-        except Exception as e:
-            return f"❌ DELETE请求失败: {e}"
-    
-    async def expect_response(self, response_id: str, url_pattern: str) -> str:
-        """开始等待HTTP响应"""
-        try:
-            result = await self._call_tool("playwright_expect_response", id=response_id, url=url_pattern)
-            return f"✅ 开始等待响应: {response_id} -> {url_pattern}\n{result}"
-        except Exception as e:
-            return f"❌ 设置响应等待失败: {e}"
-    
-    async def assert_response(self, response_id: str, expected_value: Optional[str] = None) -> str:
-        """验证HTTP响应"""
-        try:
-            params = {"id": response_id}
-            if expected_value:
-                params["value"] = expected_value
-                
-            result = await self._call_tool("playwright_assert_response", **params)
-            return f"✅ 响应验证成功: {response_id}\n{result}"
-        except Exception as e:
-            return f"❌ 响应验证失败: {e}"
-    
-    async def set_user_agent(self, user_agent: str) -> str:
-        """设置自定义User Agent"""
-        try:
-            result = await self._call_tool("playwright_custom_user_agent", userAgent=user_agent)
-            return f"✅ User Agent设置成功: {user_agent}\n{result}"
-        except Exception as e:
-            return f"❌ 设置User Agent失败: {e}"
-    
     async def get_available_tools(self) -> List[str]:
         """获取可用工具列表"""
         if not self._initialized:
@@ -376,7 +105,7 @@ class MCPPlaywrightAgent:
         try:
             # 关闭浏览器
             if self._initialized and self.tools:
-                await self._call_tool("playwright_close")
+                await self.call_tool("playwright_close", random_string="dummy")
               # 关闭会话
             if self._session_context and self.session:
                 await self._session_context.__aexit__(None, None, None)
@@ -392,43 +121,6 @@ class MCPPlaywrightAgent:
             
         except Exception as e:
             print(f"❌ 关闭 MCP 连接时出错: {e}")
-
-    # 常用方法的简化别名
-    async def navigate(self, url: str, **kwargs) -> str:
-        """导航到指定URL（简化别名）"""
-        return await self.navigate_to(url, **kwargs)
-    
-    async def screenshot(self, name: str, **kwargs) -> str:
-        """截图（简化别名）"""
-        return await self.take_screenshot(name, **kwargs)
-    
-    async def click(self, selector: str) -> str:
-        """点击元素（简化别名）"""
-        return await self.click_element(selector)
-    
-    async def fill(self, selector: str, value: str) -> str:
-        """填写表单（简化别名）"""
-        return await self.fill_input(selector, value)
-    
-    async def hover(self, selector: str) -> str:
-        """悬停元素（简化别名）"""
-        return await self.hover_element(selector)
-    
-    async def select(self, selector: str, value: str) -> str:
-        """选择选项（简化别名）"""
-        return await self.select_option(selector, value)
-    
-    async def evaluate(self, script: str) -> str:
-        """执行JS（简化别名）"""
-        return await self.execute_javascript(script)
-    
-    async def get_text(self) -> str:
-        """获取页面文本（简化别名）"""
-        return await self.get_page_text()
-    
-    async def get_html(self) -> str:
-        """获取页面HTML（简化别名）"""
-        return await self.get_page_html()
 
 
 class MCPSmartBrowserAgent:
@@ -538,7 +230,7 @@ class MCPSmartBrowserAgent:
                         result = f"✅ 等待 {seconds} 秒"
                     else:
                         # 直接调用对应的 MCP 工具
-                        result = await self.mcp_agent._call_tool(action, **params)
+                        result = await self.mcp_agent.call_tool(action, **params)
                     
                     results.append(result)
                     
