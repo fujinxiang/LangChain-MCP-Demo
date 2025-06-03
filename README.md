@@ -60,6 +60,87 @@ python mcp_demo.py
 # 输入自然语言指令，例如 "百度搜索 LangChain"，观察浏览器自动化操作
 ```
 
+### 4. 执行效果（选择 3，输入 百度搜索 LangChain）
+
+``` cmd
+    $ python mcp_demo.py 
+    🚀 LangChain MCP Adapters + Playwright MCP 演示
+    ============================================================
+
+    📋 选择演示模式:
+    1. MCP 基础操作演示
+    2. MCP 智能任务演示
+    3. 交互式 MCP 模式
+    请选择模式 (1-3): 3
+
+    ============================================================
+    🤖 交互式 MCP AI 浏览器助手
+    基于 Model Context Protocol (MCP) 的智能浏览器操作
+    支持的任务类型:
+    • 智能任务: '访问百度并搜索人工智能'
+    输入 'quit' 或 'exit' 退出
+    输入 'tools' 查看可用工具
+
+    ✅ 配置加载成功
+    API 基础 URL: https://api.siliconflow.cn/v1
+    默认模型: Qwen/Qwen3-32B
+    温度: 0.7
+    最大令牌: 1000
+    👤 请输入命令或描述任务: 百度搜索 LangChain
+    🤖 MCP AI 正在处理...
+
+    ……
+
+    🔍 请求 prompt:
+    作为一个浏览器自动化专家，请分析以下任务并提供详细的执行步骤：
+
+    任务: 百度搜索 LangChain
+
+    请提供 JSON 格式的执行计划，包含以下字段：
+    - steps: 执行步骤列表，每个步骤包含 action 和 params
+    - description: 任务描述
+
+    可用的操作包括（action请直接使用这些工具名称）:
+
+    ……
+
+    🔍 LLM 响应:
+
+    ```json
+        {
+        "description": "使用浏览器自动化工具模拟用户在百度搜索 LangChain 的完整流程",
+        "steps": [
+            {
+            "action": "playwright_navigate",
+            "params": {
+                "url": "https://www.baidu.com"
+                }
+             },
+        ……
+            ]
+        }
+    ```
+
+    🎯 任务: 使用浏览器自动化工具模拟用户在百度搜索 LangChain 的完整流程
+    ==================================================
+    📋 步骤 1: playwright_navigate
+    Navigated to https://www.baidu.com
+    ------------------------------
+    📋 步骤 2: playwright_fill
+    Filled #kw with: LangChain
+    ------------------------------
+    📋 步骤 3: playwright_click
+    Clicked element: #su
+    ------------------------------
+    📋 步骤 4: wait
+    ✅ 等待 3 秒
+    ------------------------------
+    📋 步骤 5: playwright_screenshot
+    ------------------------------
+    📋 步骤 6: playwright_close
+    Browser closed successfully
+```
+
 ## 📁 项目结构
 
 ```
