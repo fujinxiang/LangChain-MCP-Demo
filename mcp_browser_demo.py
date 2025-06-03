@@ -52,7 +52,7 @@ async def demo_mcp_smart_operations():
         
         # 测试智能任务
         smart_tasks = [
-            "访问希沃官网，再截图保存"
+            "访问 LangChain 官网，再截图保存"
         ]
         
         for i, task in enumerate(smart_tasks, 1):
