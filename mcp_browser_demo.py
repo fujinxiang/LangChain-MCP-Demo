@@ -53,9 +53,7 @@ async def demo_mcp_smart_operations():
         
         # 测试智能任务
         smart_tasks = [
-            "访问百度首页并搜索'人工智能'，然后截图",
-            "访问GitHub主页，搜索'langchain'项目",
-            "访问希沃官网并截图保存"
+            "访问希沃官网，然后滚动到页面底部，再点击链接 '开得联官网'，打开新页面后再截图保存"
         ]
         
         for i, task in enumerate(smart_tasks, 1):

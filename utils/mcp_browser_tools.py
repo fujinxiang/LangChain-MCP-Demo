@@ -253,6 +253,108 @@ class MCPPlaywrightAgent:
         except Exception as e:
             return f"❌ 结束代码生成会话失败: {e}"
     
+    async def get_codegen_session(self, session_id: str) -> str:
+        """获取代码生成会话信息"""
+        try:
+            result = await self._call_tool("get_codegen_session", sessionId=session_id)
+            return f"📋 会话信息:\n{result}"
+        except Exception as e:
+            return f"❌ 获取会话信息失败: {e}"
+    
+    async def clear_codegen_session(self, session_id: str) -> str:
+        """清除代码生成会话"""
+        try:
+            result = await self._call_tool("clear_codegen_session", sessionId=session_id)
+            return f"✅ 会话已清除\n{result}"
+        except Exception as e:
+            return f"❌ 清除会话失败: {e}"
+    
+    async def click_iframe_element(self, iframe_selector: str, selector: str) -> str:
+        """点击iframe中的元素"""
+        try:
+            result = await self._call_tool(
+                "playwright_iframe_click",
+                iframeSelector=iframe_selector,
+                selector=selector
+            )
+            return f"✅ 成功点击iframe元素: {iframe_selector} -> {selector}\n{result}"
+        except Exception as e:
+            return f"❌ 点击iframe元素失败: {e}"
+    
+    async def http_get(self, url: str) -> str:
+        """执行HTTP GET请求"""
+        try:
+            result = await self._call_tool("playwright_get", url=url)
+            return f"✅ GET请求成功:\n{result}"
+        except Exception as e:
+            return f"❌ GET请求失败: {e}"
+    
+    async def http_post(self, url: str, data: str, headers: Optional[Dict[str, str]] = None, token: Optional[str] = None) -> str:
+        """执行HTTP POST请求"""
+        try:
+            params = {"url": url, "value": data}
+            if headers:
+                params["headers"] = headers
+            if token:
+                params["token"] = token
+                
+            result = await self._call_tool("playwright_post", **params)
+            return f"✅ POST请求成功:\n{result}"
+        except Exception as e:
+            return f"❌ POST请求失败: {e}"
+    
+    async def http_put(self, url: str, data: str) -> str:
+        """执行HTTP PUT请求"""
+        try:
+            result = await self._call_tool("playwright_put", url=url, value=data)
+            return f"✅ PUT请求成功:\n{result}"
+        except Exception as e:
+            return f"❌ PUT请求失败: {e}"
+    
+    async def http_patch(self, url: str, data: str) -> str:
+        """执行HTTP PATCH请求"""
+        try:
+            result = await self._call_tool("playwright_patch", url=url, value=data)
+            return f"✅ PATCH请求成功:\n{result}"
+        except Exception as e:
+            return f"❌ PATCH请求失败: {e}"
+    
+    async def http_delete(self, url: str) -> str:
+        """执行HTTP DELETE请求"""
+        try:
+            result = await self._call_tool("playwright_delete", url=url)
+            return f"✅ DELETE请求成功:\n{result}"
+        except Exception as e:
+            return f"❌ DELETE请求失败: {e}"
+    
+    async def expect_response(self, response_id: str, url_pattern: str) -> str:
+        """开始等待HTTP响应"""
+        try:
+            result = await self._call_tool("playwright_expect_response", id=response_id, url=url_pattern)
+            return f"✅ 开始等待响应: {response_id} -> {url_pattern}\n{result}"
+        except Exception as e:
+            return f"❌ 设置响应等待失败: {e}"
+    
+    async def assert_response(self, response_id: str, expected_value: Optional[str] = None) -> str:
+        """验证HTTP响应"""
+        try:
+            params = {"id": response_id}
+            if expected_value:
+                params["value"] = expected_value
+                
+            result = await self._call_tool("playwright_assert_response", **params)
+            return f"✅ 响应验证成功: {response_id}\n{result}"
+        except Exception as e:
+            return f"❌ 响应验证失败: {e}"
+    
+    async def set_user_agent(self, user_agent: str) -> str:
+        """设置自定义User Agent"""
+        try:
+            result = await self._call_tool("playwright_custom_user_agent", userAgent=user_agent)
+            return f"✅ User Agent设置成功: {user_agent}\n{result}"
+        except Exception as e:
+            return f"❌ 设置User Agent失败: {e}"
+    
     async def get_available_tools(self) -> List[str]:
         """获取可用工具列表"""
         if not self._initialized:
@@ -273,6 +375,43 @@ class MCPPlaywrightAgent:
                 print("✅ MCP Playwright 连接已关闭")
         except Exception as e:
             print(f"❌ 关闭 MCP 连接失败: {e}")
+    
+    # 常用方法的简化别名
+    async def navigate(self, url: str, **kwargs) -> str:
+        """导航到指定URL（简化别名）"""
+        return await self.navigate_to(url, **kwargs)
+    
+    async def screenshot(self, name: str, **kwargs) -> str:
+        """截图（简化别名）"""
+        return await self.take_screenshot(name, **kwargs)
+    
+    async def click(self, selector: str) -> str:
+        """点击元素（简化别名）"""
+        return await self.click_element(selector)
+    
+    async def fill(self, selector: str, value: str) -> str:
+        """填写表单（简化别名）"""
+        return await self.fill_input(selector, value)
+    
+    async def hover(self, selector: str) -> str:
+        """悬停元素（简化别名）"""
+        return await self.hover_element(selector)
+    
+    async def select(self, selector: str, value: str) -> str:
+        """选择选项（简化别名）"""
+        return await self.select_option(selector, value)
+    
+    async def evaluate(self, script: str) -> str:
+        """执行JS（简化别名）"""
+        return await self.execute_javascript(script)
+    
+    async def get_text(self) -> str:
+        """获取页面文本（简化别名）"""
+        return await self.get_page_text()
+    
+    async def get_html(self) -> str:
+        """获取页面HTML（简化别名）"""
+        return await self.get_page_html()
 
 
 class MCPSmartBrowserAgent:
