@@ -4,9 +4,11 @@
 """
 
 import requests
+import asyncio
+import aiohttp
 from typing import Any, Dict, List, Optional
 from langchain.llms.base import LLM
-from langchain.callbacks.manager import CallbackManagerForLLMRun
+from langchain.callbacks.manager import CallbackManagerForLLMRun, AsyncCallbackManagerForLLMRun
 from config import config
 
 
@@ -68,6 +70,46 @@ class SiliconFlowLLM(LLM):
             
         except requests.exceptions.RequestException as e:
             raise ValueError(f"API 请求失败: {e}")
+        except KeyError as e:
+            raise ValueError(f"API 响应格式错误: {e}")
+    
+    async def _acall(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[AsyncCallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> str:
+        """异步调用硅基流动 API"""
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "model": self.model_name,
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
+            "stream": False
+        }
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"{self.base_url}/chat/completions",
+                    headers=headers,
+                    json=data,
+                    timeout=aiohttp.ClientTimeout(total=60)
+                ) as response:
+                    response.raise_for_status()
+                    result = await response.json()
+                    return result["choices"][0]["message"]["content"]
+                    
+        except aiohttp.ClientError as e:
+            raise ValueError(f"异步 API 请求失败: {e}")
         except KeyError as e:
             raise ValueError(f"API 响应格式错误: {e}")
     
