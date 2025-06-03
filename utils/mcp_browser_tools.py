@@ -35,6 +35,7 @@ class MCPPlaywrightAgent:
                 "transport": "stdio"
             }
         }    
+
     async def initialize(self):
         """初始化 MCP 客户端和会话"""
         if self._initialized:
@@ -467,31 +468,39 @@ class MCPSmartBrowserAgent:
 - steps: 执行步骤列表，每个步骤包含 action 和 params
 - description: 任务描述
 
-可用的操作包括:
-- navigate_to: 导航到 URL
-- click_element: 点击元素
-- fill_input: 填写输入框
-- take_screenshot: 截图
-- execute_javascript: 执行 JS
-- get_page_text: 获取页面文本
-- wait: 等待指定时间（秒）
+可用的操作包括（action请直接使用这些工具名称）:
+- playwright_navigate: 导航到 URL (参数: url, browserType, headless, width, height, timeout, waitUntil)
+- playwright_click: 点击元素 (参数: selector)
+- playwright_fill: 填写输入框 (参数: selector, value)
+- playwright_screenshot: 截图 (参数: name, selector, fullPage, width, height, savePng, storeBase64, downloadsDir)
+- playwright_evaluate: 执行 JavaScript (参数: script)
+- playwright_get_visible_text: 获取页面文本 (参数: random_string)
+- playwright_get_visible_html: 获取页面HTML (参数: random_string)
+- playwright_hover: 悬停元素 (参数: selector)
+- playwright_select: 选择下拉框 (参数: selector, value)
+- playwright_go_back: 浏览器后退 (参数: random_string)
+- playwright_go_forward: 浏览器前进 (参数: random_string)
+- playwright_press_key: 按键操作 (参数: key, selector)
+- playwright_drag: 拖拽元素 (参数: sourceSelector, targetSelector)
+- playwright_console_logs: 获取控制台日志 (参数: type, limit, search, clear)
+- wait: 等待指定时间（秒，特殊操作）
 
 例如:
 {{
   "description": "访问百度并搜索人工智能",
   "steps": [
-    {{"action": "navigate_to", "params": {{"url": "https://www.baidu.com"}}}},
-    {{"action": "fill_input", "params": {{"selector": "#kw", "value": "人工智能"}}}},
-    {{"action": "click_element", "params": {{"selector": "#su"}}}},
+    {{"action": "playwright_navigate", "params": {{"url": "https://www.baidu.com"}}}},
+    {{"action": "playwright_fill", "params": {{"selector": "#kw", "value": "人工智能"}}}},
+    {{"action": "playwright_click", "params": {{"selector": "#su"}}}},
     {{"action": "wait", "params": {{"seconds": 3}}}},
-    {{"action": "take_screenshot", "params": {{"name": "search_result"}}}}
+    {{"action": "playwright_screenshot", "params": {{"name": "search_result"}}}}
   ]
 }}
 """
             
             response = await self.llm.ainvoke(prompt)
             
-            # 解析响应 - 修复：直接使用response而不是response.content
+            # 解析响应
             try:
                 import re
                 # 处理response，可能是字符串或者对象
@@ -505,7 +514,6 @@ class MCPSmartBrowserAgent:
                 json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
                 if json_match:
                     plan = json.loads(json_match.group())
-                    print(f"📋 解析的执行计划: {plan}")
                 else:
                     raise ValueError("未找到有效的 JSON 响应")
             except (json.JSONDecodeError, ValueError) as e:
@@ -523,24 +531,14 @@ class MCPSmartBrowserAgent:
                 results.append(f"📋 步骤 {i}: {action}")
                 
                 try:
-                    if action == "navigate_to":
-                        result = await self.mcp_agent.navigate_to(**params)
-                    elif action == "click_element":
-                        result = await self.mcp_agent.click_element(**params)
-                    elif action == "fill_input":
-                        result = await self.mcp_agent.fill_input(**params)
-                    elif action == "take_screenshot":
-                        result = await self.mcp_agent.take_screenshot(**params)
-                    elif action == "execute_javascript":
-                        result = await self.mcp_agent.execute_javascript(**params)
-                    elif action == "get_page_text":
-                        result = await self.mcp_agent.get_page_text()
-                    elif action == "wait":
+                    if action == "wait":
+                        # 特殊处理等待操作
                         seconds = params.get('seconds', 1)
                         await asyncio.sleep(seconds)
                         result = f"✅ 等待 {seconds} 秒"
                     else:
-                        result = f"❌ 未知操作: {action}"
+                        # 直接调用对应的 MCP 工具
+                        result = await self.mcp_agent._call_tool(action, **params)
                     
                     results.append(result)
                     
